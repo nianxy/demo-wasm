@@ -1,0 +1,63 @@
+<script>
+WebAssembly.instantiateStreaming(fetch('a.wasm'), {
+  // env: {
+  //   memory: new WebAssembly.Memory({ initial: 256 })
+  // },
+  wasi_snapshot_preview1: {
+    proc_exit: () => { console.log('proc exit') }
+  }
+}).then(res => {
+  console.log(res);
+
+  const { add, add2, /*add2, malloc, free, memory*/ } = res.instance.exports;
+
+  // const ptr1 = malloc(4);
+  // const ptr2 = malloc(4);
+
+  // const buf = new Int32Array(memory.buffer);
+
+  // const n1 = buf[ptr1>>2] = 3;
+  // const n2 = buf[ptr2>>2] = 5;
+
+  // const sum = add2(ptr1, ptr2);
+  // console.log(n1, n2, sum);
+
+  // free(ptr1);
+  // free(ptr2);
+
+
+  const loops = Math.pow(10, 7);
+
+  console.log('add', add(1, 2));
+  const t1 = performance.now();
+  for (let i=0; i<loops; ++i) {
+    add(1, 2);
+  }
+  console.log('time cost:', performance.now()-t1);
+
+  console.log('add2', add2(1, 2));
+  const t2 = performance.now();
+  const r2 = add2(1, 2, loops);
+  console.log('time cost:', performance.now()-t2, r2);
+
+  function add3(a, b) {
+    return a+b;
+  }
+  console.log('add3', add3(1, 2));
+  const t3 = performance.now();
+  let m=0;
+  for (let i=0; i<loops; ++i) {
+    m += add3(1, 2);
+  }
+  console.log('time cost:', performance.now()-t3, m);
+
+  const t4 = performance.now();
+  const devide = 1000;
+  const l1 = loops/devide;
+  let r4 = 0;
+  for (let i=0; i<devide; ++i) {
+    r4 += add2(1, 2, l1);
+  }
+  console.log('time cost:', performance.now()-t4, r4);
+})
+</script>
